@@ -16,23 +16,18 @@ import           Control.Lens
 import           Control.Monad.Except
 
 --------------------------------------------------------------------------------
---- BEGIN Open Union Kit
+--- BEGIN Extendible Sum Type Kit
 --------------------------------------------------------------------------------
+
+data Variant :: [*] -> * where
+    Z :: x -> Variant (x ': xs)
+    S :: Variant xs -> Variant (x ': xs)
 
 data Nat = NZ | NS !Nat
 
 type family RIndex (r :: k) (rs :: [k]) :: Nat where
   RIndex r (r ': rs) = NZ
   RIndex r (s ': rs) = NS (RIndex r rs)
-
-data Variant :: [*] -> * where
-    Z :: x -> Variant (x ': xs)
-    S :: Variant xs -> Variant (x ': xs)
-
-_S :: Prism' (Variant (x ': xs)) (Variant xs)
-_S = prism' S $ \case
-        S v -> Just v
-        _ -> Nothing
 
 class i ~ RIndex x xs => Has xs x i where
     inj :: Prism' (Variant xs) x
@@ -41,6 +36,11 @@ instance Has (x ': xs) x NZ where
     inj = prism' Z $ \case
             Z x -> Just x
             _ -> Nothing
+
+_S :: Prism' (Variant (x ': xs)) (Variant xs)
+_S = prism' S $ \case
+        S v -> Just v
+        _ -> Nothing
 
 instance (RIndex x (a ': xs) ~ NS i, Has xs x i) => Has (a ': xs) x (NS i) where
     inj = _S . inj
