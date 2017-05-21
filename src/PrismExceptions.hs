@@ -72,19 +72,19 @@ combine :: ( Has xs IdNotFound i
            )
         => m ()
 combine = do
+    lookupId 2
     safeDivsion 1 0
-    lookupId 1
     return ()
 
 test :: IO ()
-test = do
-    case runExcept combine of
-        Right () -> putStrLn "success"
-        -- I have to pick an order for this to work, but the order is arbitrary
-        -- The order does effect how the patterns work (whether it is S (..) or
-        -- just Z).
-        -- The explicit type annotation is a downside but it is better than
-        -- making a bunch of one off types
-        Left v -> case v :: Variant [IdNotFound, ZeroDivisor] of
-            S (Z ZeroDivisor) -> putStrLn "zero divisor"
-            Z (IdNotFound i)  -> putStrLn $ "id not found " ++ show i
+test = case runExcept combine of
+  Right () -> putStrLn "success"
+  -- I have to pick an order for this to work, but the order is arbitrary
+  -- The order does effect how the patterns work (whether it is S (..) or
+  -- just Z).
+  -- The explicit type annotation is a downside but it is better than
+  -- making a bunch of one off types
+  Left v -> case v :: Variant [IdNotFound, ZeroDivisor] of
+      S (Z ZeroDivisor) -> putStrLn "zero divisor"
+      Z (IdNotFound i)  -> putStrLn
+                         $ "Id " ++ show i ++ " not found!"
